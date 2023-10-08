@@ -89,6 +89,7 @@ jupyterlab==3.5.3
 jupyterlab-pygments==0.2.2
 jupyterlab-widgets==3.0.5
 jupyterlab_server==2.19.0
+kaleido==0.2.1
 keyring==23.5.0
 kiwisolver==1.4.4
 langdetect==1.0.7
