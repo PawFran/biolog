@@ -25,7 +25,7 @@ def subtract_start(df):
     return df.sub(df['0'], axis=0)
 
 
-def truncate_under_threshold(df, threshold=0.25):
+def truncate_under_threshold(df, threshold=0.1):
     return df.applymap(lambda x: 0 if x < threshold else x)
 
 
