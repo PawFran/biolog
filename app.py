@@ -23,6 +23,8 @@ st.title('Fitting Sigmoid')
 uploaded_files = st.file_uploader('Upload csv file', type='csv', accept_multiple_files=True)
 file_names = [f.name.split('.')[0] for f in uploaded_files]
 
+calculate_model_per_substrate = st.checkbox('Calculate model per substrate')
+
 if st.button('Run'):
     zip_obj = ZipFile(Path(tmp_results_dir_name) / zip_file_name, 'w')
 
@@ -33,31 +35,35 @@ if st.button('Run'):
     final_aggregated_lst = []
 
     for i, uploaded_file in zip(range(len(uploaded_files)), uploaded_files):
-        st.write(f'processing {i+1} file out of {len(uploaded_files)}')
+        st.write(f'processing {i + 1} file out of {len(uploaded_files)}')
+
         df_raw = pd.read_csv(uploaded_file, sep=';')
+        df_raw_lst.append(df_raw)
 
         intermediate = pre_process(df_raw)
-        final = fit_model(intermediate)
-        aggregated = mean_each_trial(intermediate)
-        final_aggregated = fit_model(aggregated)
-
-        per_substrate_joined_with_model = intermediate.merge(final, on='trial')
-        aggregated_joined_with_model = aggregated.merge(final_aggregated, on='trial')
-
-        df_raw_lst.append(df_raw)
         intermediate_lst.append(intermediate)
-        final_lst.append(final)
+
+        aggregated = mean_each_trial(intermediate)
         aggregated_lst.append(aggregated)
+
+        final_aggregated = fit_model(aggregated)
         final_aggregated_lst.append(final_aggregated)
 
-        per_substrate_file_name = f'per_substrate_{uploaded_file.name}'
+        aggregated_joined_with_model = aggregated.merge(final_aggregated, on='trial')
+
         aggregated_file_name = f'final_{uploaded_file.name}'
-
-        per_substrate_joined_with_model.to_csv(tmp_path / per_substrate_file_name)
         aggregated_joined_with_model.to_csv(tmp_path / aggregated_file_name)
-
-        zip_obj.write(tmp_path / per_substrate_file_name)
         zip_obj.write(tmp_path / aggregated_file_name)
+
+        if calculate_model_per_substrate:
+            final = fit_model(intermediate)
+            final_lst.append(final)
+
+            per_substrate_joined_with_model = intermediate.merge(final, on='trial')
+
+            per_substrate_file_name = f'per_substrate_{uploaded_file.name}'
+            per_substrate_joined_with_model.to_csv(tmp_path / per_substrate_file_name)
+            zip_obj.write(tmp_path / per_substrate_file_name)
 
     # if st.checkbox('Show raw data'):
     #     st.subheader('raw data')
@@ -71,20 +77,20 @@ if st.button('Run'):
     #         st.write(file_name)
     #         st.write(intermediate)
 
-        # st.subheader('model fitted per substrate')
-        # for final, file_name in zip(final_lst, file_names):
-        #     st.write(file_name)
-        #     st.write(final)
+    # st.subheader('model fitted per substrate')
+    # for final, file_name in zip(final_lst, file_names):
+    #     st.write(file_name)
+    #     st.write(final)
 
-        # st.subheader('mean each trial')
-        # for aggregated, file_name in zip(aggregated_lst, file_names):
-        #     st.write(file_name)
-        #     st.write(aggregated)
-        #
-        # st.subheader('model fitted per mean')
-        # for final_aggregated, file_name in zip(final_aggregated_lst, file_names):
-        #     st.write(file_name)
-        #     st.write(final_aggregated)
+    # st.subheader('mean each trial')
+    # for aggregated, file_name in zip(aggregated_lst, file_names):
+    #     st.write(file_name)
+    #     st.write(aggregated)
+    #
+    # st.subheader('model fitted per mean')
+    # for final_aggregated, file_name in zip(final_aggregated_lst, file_names):
+    #     st.write(file_name)
+    #     st.write(final_aggregated)
 
     # if st.button('Show plot for aggregated data'):
     for aggregated, file_name in zip(aggregated_lst, file_names):
