@@ -9,6 +9,8 @@ from entry import *
 from pathlib import Path
 import shutil
 
+st.set_page_config(layout="wide")
+
 tmp_results_dir_name = 'tmp'
 zip_file_name = 'results.zip'
 
@@ -95,27 +97,29 @@ if st.button('Run'):
     # if st.button('Show plot for aggregated data'):
     for aggregated, file_name in zip(aggregated_lst, file_names):
         st.write(file_name)
+        columns = st.columns(len(aggregated.index))
         for i in aggregated.index:
-            to_plot = aggregated[aggregated.index == i].transpose()
-            to_plot.index = to_plot.index.astype(float)
+            with columns[i-1]:
+                to_plot = aggregated[aggregated.index == i].transpose()
+                to_plot.index = to_plot.index.astype(float)
 
-            hours = to_plot.index.values
-            xs = np.linspace(min(hours), max(hours))
-            ys_measured = to_plot.values.reshape(len(to_plot))
+                hours = to_plot.index.values
+                xs = np.linspace(min(hours), max(hours))
+                ys_measured = to_plot.values.reshape(len(to_plot))
 
-            params = final_aggregated.iloc[i - 1]
-            L, x0, k, b = params['L'], params['x0'], params['k'], params['b']
-            ys_fitted = sigmoid(xs, L, x0, k, b)
+                params = final_aggregated.iloc[i - 1]
+                L, x0, k, b = params['L'], params['x0'], params['k'], params['b']
+                ys_fitted = sigmoid(xs, L, x0, k, b)
 
-            fig = go.Figure(layout_title_text=f'trial {i}')
-            fig.add_trace(trace=go.Scatter(x=hours, y=ys_measured, mode='markers', name='measured'))
-            fig.add_trace(go.Scatter(x=xs, y=ys_fitted, mode='lines', name='fitted'))
+                fig = go.Figure(layout_title_text=f'trial {i}')
+                fig.add_trace(trace=go.Scatter(x=hours, y=ys_measured, mode='markers', name='measured'))
+                fig.add_trace(go.Scatter(x=xs, y=ys_fitted, mode='lines', name='fitted'))
 
-            image_path = Path(tmp_results_dir_name) / f'chart_{file_name}_{i}'
-            pio.write_image(fig, image_path, format='png')
-            zip_obj.write(image_path)
+                image_path = Path(tmp_results_dir_name) / f'chart_{file_name}_{i}'
+                pio.write_image(fig, image_path, format='png')
+                zip_obj.write(image_path)
 
-            st.plotly_chart(fig)
+                st.plotly_chart(fig, use_container_width=True)
 
     zip_obj.close()
 
