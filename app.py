@@ -1,7 +1,22 @@
+import plotly.io as pio
+
 import plotly.graph_objects as go
 import streamlit as st
+from zipfile import ZipFile
 
 from entry import *
+
+from pathlib import Path
+import shutil
+
+tmp_results_dir_name = 'tmp'
+zip_file_name = 'results.zip'
+
+# remove tmp if exists
+tmp_path = Path(tmp_results_dir_name)
+if tmp_path.exists() and tmp_path.is_dir():
+    shutil.rmtree(tmp_path)
+os.mkdir(tmp_results_dir_name)
 
 st.title('Fitting Sigmoid')
 
@@ -9,13 +24,16 @@ uploaded_files = st.file_uploader('Upload csv file', type='csv', accept_multiple
 file_names = [f.name.split('.')[0] for f in uploaded_files]
 
 if len(uploaded_files) > 0:
+    zip_obj = ZipFile(Path(tmp_results_dir_name) / zip_file_name, 'w')
+
     df_raw_lst = []
     intermediate_lst = []
     final_lst = []
     aggregated_lst = []
     final_aggregated_lst = []
 
-    for uploaded_file in uploaded_files:
+    for i, uploaded_file in zip(range(len(uploaded_files)), uploaded_files):
+        st.write(f'processing {i+1} file out of {len(uploaded_files)}')
         df_raw = pd.read_csv(uploaded_file, sep=';')
 
         intermediate = pre_process(df_raw)
@@ -30,6 +48,9 @@ if len(uploaded_files) > 0:
         final_lst.append(final)
         aggregated_lst.append(aggregated)
         final_aggregated_lst.append(final_aggregated)
+
+        final_aggregated.to_csv(tmp_path / uploaded_file.name)#.encode('utf-8')
+        zip_obj.write(tmp_path / uploaded_file.name)
 
     if st.checkbox('Show raw data'):
         st.subheader('raw data')
@@ -58,38 +79,37 @@ if len(uploaded_files) > 0:
             st.write(file_name)
             st.write(final_aggregated)
 
-    if st.button('Show plot for aggregated data'):
-        for aggregated, file_name in zip(aggregated_lst, file_names):
-            st.write(file_name)
-            for i in aggregated.index:
-                to_plot = aggregated[aggregated.index == i].transpose()
-                to_plot.index = to_plot.index.astype(float)
+    # if st.button('Show plot for aggregated data'):
+    for aggregated, file_name in zip(aggregated_lst, file_names):
+        st.write(file_name)
+        for i in aggregated.index:
+            to_plot = aggregated[aggregated.index == i].transpose()
+            to_plot.index = to_plot.index.astype(float)
 
-                hours = to_plot.index.values
-                xs = np.linspace(min(hours), max(hours))
-                ys_measured = to_plot.values.reshape(len(to_plot))
+            hours = to_plot.index.values
+            xs = np.linspace(min(hours), max(hours))
+            ys_measured = to_plot.values.reshape(len(to_plot))
 
-                params = final_aggregated.iloc[i - 1]
-                L, x0, k, b = params['L'], params['x0'], params['k'], params['b']
-                ys_fitted = sigmoid(xs, L, x0, k, b)
+            params = final_aggregated.iloc[i - 1]
+            L, x0, k, b = params['L'], params['x0'], params['k'], params['b']
+            ys_fitted = sigmoid(xs, L, x0, k, b)
 
-                fig = go.Figure(layout_title_text=f'trial {i}')
-                fig.add_trace(trace=go.Scatter(x=hours, y=ys_measured, mode='markers', name='measured'))
-                fig.add_trace(go.Scatter(x=xs, y=ys_fitted, mode='lines', name='fitted'))
+            fig = go.Figure(layout_title_text=f'trial {i}')
+            fig.add_trace(trace=go.Scatter(x=hours, y=ys_measured, mode='markers', name='measured'))
+            fig.add_trace(go.Scatter(x=xs, y=ys_fitted, mode='lines', name='fitted'))
 
-                st.plotly_chart(fig)
+            image_path = Path(tmp_results_dir_name) / f'{file_name}_{i}'
+            pio.write_image(fig, image_path, format='png')
+            zip_obj.write(image_path)
 
+            st.plotly_chart(fig)
 
-    @st.cache_data
-    def convert_df(df):
-        return df.to_csv().encode('utf-8')
+    zip_obj.close()
 
-
-    csv = convert_df(final_aggregated)
-
-    # st.download_button(
-    #     label="Download data as CSV",
-    #     data=csv,
-    #     file_name=uploaded_file.name,
-    #     mime='text/csv',
-    # )
+    with open(tmp_path / zip_file_name, "rb") as fp:
+        btn = st.download_button(
+            label="Download results",
+            data=fp,
+            file_name=zip_file_name,
+            mime="application/zip"
+        )
