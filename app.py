@@ -23,7 +23,7 @@ st.title('Fitting Sigmoid')
 uploaded_files = st.file_uploader('Upload csv file', type='csv', accept_multiple_files=True)
 file_names = [f.name.split('.')[0] for f in uploaded_files]
 
-if len(uploaded_files) > 0:
+if st.button('Run'):
     zip_obj = ZipFile(Path(tmp_results_dir_name) / zip_file_name, 'w')
 
     df_raw_lst = []
@@ -41,7 +41,7 @@ if len(uploaded_files) > 0:
         aggregated = mean_each_trial(intermediate)
         final_aggregated = fit_model(aggregated)
 
-        per_substrate_joined_with_model = final.merge(final_aggregated, on='trial')
+        per_substrate_joined_with_model = intermediate.merge(final, on='trial')
         aggregated_joined_with_model = aggregated.merge(final_aggregated, on='trial')
 
         df_raw_lst.append(df_raw)
@@ -53,41 +53,38 @@ if len(uploaded_files) > 0:
         per_substrate_file_name = f'per_substrate_{uploaded_file.name}'
         aggregated_file_name = f'final_{uploaded_file.name}'
 
-        # intermediate.to_csv(tmp_path / f'{uploaded_file.name}_preprocessed')
         per_substrate_joined_with_model.to_csv(tmp_path / per_substrate_file_name)
-        # aggregated.to_csv(tmp_path / f'{uploaded_file.name}_aggregated_per_trial')
-        # final_aggregated.to_csv(tmp_path / f'{uploaded_file.name}_model_final')
         aggregated_joined_with_model.to_csv(tmp_path / aggregated_file_name)
 
         zip_obj.write(tmp_path / per_substrate_file_name)
         zip_obj.write(tmp_path / aggregated_file_name)
 
-    if st.checkbox('Show raw data'):
-        st.subheader('raw data')
-        for df_raw, file_name in zip(df_raw_lst, file_names):
-            st.write(file_name)
-            st.write(df_raw)
-
-    if st.checkbox('Show processed data'):
-        st.subheader('preprocessed data')
-        for intermediate, file_name in zip(intermediate_lst, file_names):
-            st.write(file_name)
-            st.write(intermediate)
+    # if st.checkbox('Show raw data'):
+    #     st.subheader('raw data')
+    #     for df_raw, file_name in zip(df_raw_lst, file_names):
+    #         st.write(file_name)
+    #         st.write(df_raw)
+    #
+    # if st.checkbox('Show processed data'):
+    #     st.subheader('preprocessed data')
+    #     for intermediate, file_name in zip(intermediate_lst, file_names):
+    #         st.write(file_name)
+    #         st.write(intermediate)
 
         # st.subheader('model fitted per substrate')
         # for final, file_name in zip(final_lst, file_names):
         #     st.write(file_name)
         #     st.write(final)
 
-        st.subheader('mean each trial')
-        for aggregated, file_name in zip(aggregated_lst, file_names):
-            st.write(file_name)
-            st.write(aggregated)
-
-        st.subheader('model fitted per mean')
-        for final_aggregated, file_name in zip(final_aggregated_lst, file_names):
-            st.write(file_name)
-            st.write(final_aggregated)
+        # st.subheader('mean each trial')
+        # for aggregated, file_name in zip(aggregated_lst, file_names):
+        #     st.write(file_name)
+        #     st.write(aggregated)
+        #
+        # st.subheader('model fitted per mean')
+        # for final_aggregated, file_name in zip(final_aggregated_lst, file_names):
+        #     st.write(file_name)
+        #     st.write(final_aggregated)
 
     # if st.button('Show plot for aggregated data'):
     for aggregated, file_name in zip(aggregated_lst, file_names):
@@ -116,10 +113,10 @@ if len(uploaded_files) > 0:
 
     zip_obj.close()
 
-with open(tmp_path / zip_file_name, "rb") as fp:
-    btn = st.download_button(
-        label="Download results",
-        data=fp,
-        file_name=zip_file_name,
-        mime="application/zip"
-    )
+    with open(tmp_path / zip_file_name, "rb") as fp:
+        btn = st.download_button(
+            label="Download results",
+            data=fp,
+            file_name=zip_file_name,
+            mime="application/zip"
+        )
