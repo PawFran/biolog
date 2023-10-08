@@ -28,7 +28,7 @@ if len(uploaded_files) > 0:
 
     df_raw_lst = []
     intermediate_lst = []
-    final_lst = []
+    # final_lst = []
     aggregated_lst = []
     final_aggregated_lst = []
 
@@ -37,19 +37,23 @@ if len(uploaded_files) > 0:
         df_raw = pd.read_csv(uploaded_file, sep=';')
 
         intermediate = pre_process(df_raw)
-        final = fit_model(intermediate)
+        # final = fit_model(intermediate)
         aggregated = mean_each_trial(intermediate)
         final_aggregated = fit_model(aggregated)
 
-        # aggregated_joined_with_model = aggregated.merge(final_aggregated, on='trial')
+        aggregated_joined_with_model = aggregated.merge(final_aggregated, on='trial')
 
         df_raw_lst.append(df_raw)
         intermediate_lst.append(intermediate)
-        final_lst.append(final)
+        # final_lst.append(final)
         aggregated_lst.append(aggregated)
         final_aggregated_lst.append(final_aggregated)
 
-        final_aggregated.to_csv(tmp_path / uploaded_file.name)#.encode('utf-8')
+        # intermediate.to_csv(tmp_path / f'{uploaded_file.name}_preprocessed')#.encode('utf-8')
+        # final.to_csv(tmp_path / f'{uploaded_file.name}_mode_per_substrate')#.encode('utf-8')
+        # aggregated.to_csv(tmp_path / f'{uploaded_file.name}_aggregated_per_trial')#.encode('utf-8')
+        # final_aggregated.to_csv(tmp_path / f'{uploaded_file.name}_model_final')#.encode('utf-8')
+        aggregated_joined_with_model.to_csv(tmp_path / f'{uploaded_file.name}')#.encode('utf-8')
         zip_obj.write(tmp_path / uploaded_file.name)
 
     if st.checkbox('Show raw data'):
@@ -64,10 +68,10 @@ if len(uploaded_files) > 0:
             st.write(file_name)
             st.write(intermediate)
 
-        st.subheader('model fitted per substrate')
-        for final, file_name in zip(final_lst, file_names):
-            st.write(file_name)
-            st.write(final)
+        # st.subheader('model fitted per substrate')
+        # for final, file_name in zip(final_lst, file_names):
+        #     st.write(file_name)
+        #     st.write(final)
 
         st.subheader('mean each trial')
         for aggregated, file_name in zip(aggregated_lst, file_names):
