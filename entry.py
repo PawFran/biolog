@@ -26,16 +26,3 @@ def save_output(preprocessed, model, file_name):
 
     preprocessed.to_csv('{}/{}'.format(output_path, file_name))
     model.to_csv('{}/model_{}'.format(output_path, file_name))
-
-
-def full_pipeline(path):
-    for file_name in os.listdir(path):
-        raw = pd.read_csv('{}/{}'.format(path, file_name), sep=';')
-
-        intermediate = pre_process(raw)
-        aggregated = mean_each_trial(intermediate)
-
-        final = fit_model(intermediate)
-        final_aggregated = fit_model(aggregated)
-
-        return intermediate, final, aggregated, final_aggregated

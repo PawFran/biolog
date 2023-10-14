@@ -8,7 +8,7 @@ def sigmoid(xs, L, x0, k, b):
     return y
 
 
-def fit_model(df):
+def fit_model(df, method):
     hours = df.columns.astype(np.float64)
 
     def fit_curve(ydata):
@@ -18,7 +18,7 @@ def fit_model(df):
         p0 = [max(ydata), np.median(hours), 1, min(ydata)]
 
         try:
-            params, covariance = curve_fit(sigmoid, hours, ydata, p0, method='lm')
+            params, covariance = curve_fit(sigmoid, hours, ydata, p0, method=method)
         except RuntimeError:
             print('Runtime error during curve fitting. 0s will be used as fallback params')
             params = [0, 0, 0, 0]

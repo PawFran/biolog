@@ -27,6 +27,8 @@ file_names = [f.name.split('.')[0] for f in uploaded_files]
 
 calculate_model_per_substrate = st.checkbox('Calculate model per substrate')
 
+method = st.radio(label='Optimization algorithm', options=['lm', 'dogbox', 'trf'])
+
 if st.button('Run'):
     zip_obj = ZipFile(Path(tmp_results_dir_name) / zip_file_name, 'w')
 
@@ -48,7 +50,7 @@ if st.button('Run'):
         aggregated = mean_each_trial(intermediate)
         aggregated_lst.append(aggregated)
 
-        final_aggregated = fit_model(aggregated)
+        final_aggregated = fit_model(aggregated, method)
         final_aggregated_lst.append(final_aggregated)
 
         aggregated_joined_with_model = aggregated.merge(final_aggregated, on='trial')
@@ -58,7 +60,7 @@ if st.button('Run'):
         zip_obj.write(tmp_path / aggregated_file_name)
 
         if calculate_model_per_substrate:
-            final = fit_model(intermediate)
+            final = fit_model(intermediate, method)
             final_lst.append(final)
 
             per_substrate_joined_with_model = intermediate.merge(final, on='trial')
@@ -99,7 +101,7 @@ if st.button('Run'):
         st.write(file_name)
         columns = st.columns(len(aggregated.index))
         for i in aggregated.index:
-            with columns[i-1]:
+            with columns[i - 1]:
                 to_plot = aggregated[aggregated.index == i].transpose()
                 to_plot.index = to_plot.index.astype(float)
 
