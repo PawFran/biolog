@@ -39,9 +39,9 @@ if st.button('Run'):
     final_aggregated_lst = []
 
     for i, uploaded_file in zip(range(len(uploaded_files)), uploaded_files):
-        st.write(f'processing {i + 1} file out of {len(uploaded_files)}')
+        st.write(f'processing {i + 1} file out of {len(uploaded_files)} ({uploaded_file.name})')
 
-        df_raw = pd.read_csv(uploaded_file, sep=';')
+        df_raw = pd.read_csv(uploaded_file, sep=';', decimal=',')
         df_raw_lst.append(df_raw)
 
         intermediate = pre_process(df_raw)
@@ -69,34 +69,6 @@ if st.button('Run'):
             per_substrate_joined_with_model.to_csv(tmp_path / per_substrate_file_name)
             zip_obj.write(tmp_path / per_substrate_file_name)
 
-    # if st.checkbox('Show raw data'):
-    #     st.subheader('raw data')
-    #     for df_raw, file_name in zip(df_raw_lst, file_names):
-    #         st.write(file_name)
-    #         st.write(df_raw)
-    #
-    # if st.checkbox('Show processed data'):
-    #     st.subheader('preprocessed data')
-    #     for intermediate, file_name in zip(intermediate_lst, file_names):
-    #         st.write(file_name)
-    #         st.write(intermediate)
-
-    # st.subheader('model fitted per substrate')
-    # for final, file_name in zip(final_lst, file_names):
-    #     st.write(file_name)
-    #     st.write(final)
-
-    # st.subheader('mean each trial')
-    # for aggregated, file_name in zip(aggregated_lst, file_names):
-    #     st.write(file_name)
-    #     st.write(aggregated)
-    #
-    # st.subheader('model fitted per mean')
-    # for final_aggregated, file_name in zip(final_aggregated_lst, file_names):
-    #     st.write(file_name)
-    #     st.write(final_aggregated)
-
-    # if st.button('Show plot for aggregated data'):
     for aggregated, file_name in zip(aggregated_lst, file_names):
         st.write(file_name)
         columns = st.columns(len(aggregated.index))
