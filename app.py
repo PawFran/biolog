@@ -41,7 +41,7 @@ if st.button('Run'):
     for i, uploaded_file in zip(range(len(uploaded_files)), uploaded_files):
         st.write(f'processing {i + 1} file out of {len(uploaded_files)} ({uploaded_file.name})')
 
-        df_raw = pd.read_csv(uploaded_file, sep=';', decimal=',')
+        df_raw = pd.read_csv(uploaded_file, sep=';', decimal='.')
         df_raw_lst.append(df_raw)
 
         intermediate = pre_process(df_raw)
@@ -89,11 +89,11 @@ if st.button('Run'):
                 fig.add_trace(trace=go.Scatter(x=hours, y=ys_measured, mode='markers', name='measured'))
                 fig.add_trace(go.Scatter(x=xs, y=ys_fitted, mode='lines', name='fitted'))
 
-                image_path = Path(tmp_results_dir_name) / f'chart_{file_name}_{i}'
+                image_path = Path(tmp_results_dir_name) / f'chart_{file_name}_{i}.png'
                 pio.write_image(fig, image_path, format='png')
                 zip_obj.write(image_path)
 
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True, key=f'chart_{file_name}_{i}')
 
     zip_obj.close()
 
